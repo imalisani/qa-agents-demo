@@ -144,6 +144,12 @@ Use Playwright UI mode:
 npm run test:ui
 ```
 
+Record a real video for every successful test and regenerate Allure:
+
+```bash
+npm run test:portfolio
+```
+
 Open the last HTML report:
 
 ```bash
@@ -183,6 +189,8 @@ Every `npm test` run creates:
 - Traces: retained on failure as `trace.zip`
 - Screenshots: captured only on failure
 - Videos: retained only on failure
+
+`npm run test:portfolio` overrides that last policy for a deliberate portfolio recording and produces `.webm` files under `test-results/`.
 
 The latest verified summary is [`reports/execution-summary.md`](reports/execution-summary.md). Generated HTML, JSON, traces, screenshots, and videos are ignored by Git by default because they are environment-specific. See [`evidence/README.md`](evidence/README.md) and the [portfolio evidence guide](docs/portfolio-evidence.md).
 

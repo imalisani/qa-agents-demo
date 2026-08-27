@@ -13,7 +13,13 @@
 
 ## Record a real execution video
 
-The default configuration retains video only on failure. For a curated successful-run recording, set `video: 'on'` temporarily in `playwright.config.ts`, run the selected test, and use the generated `.webm` from `test-results/`. Do not present a mocked terminal or fabricated result.
+The default configuration retains video only on failure. For a curated successful-run recording, use the dedicated command:
+
+```bash
+npm run test:portfolio
+```
+
+This sets `PLAYWRIGHT_VIDEO=on` for that run only, records every test, and regenerates the Allure report. Videos are written under `test-results/` and attached to the Allure results when supported by the reporter. Select the clearest `.webm` for a portfolio clip. Do not present a mocked terminal or fabricated result.
 
 ## Linking from a portfolio later
 
