@@ -24,3 +24,16 @@ description: Select, create, execute, and review Playwright TypeScript tests for
 ## Execution
 
 Run the narrowest relevant suite first. Preserve configured HTML, JSON, trace, screenshot, and video artifacts. Investigate failures before modifying tests, timeouts, or retries. Report only results from commands actually executed.
+
+### Portfolio video evidence
+
+When portfolio or showcase evidence is explicitly requested:
+
+1. Execute only the dedicated portfolio project through `npm run test:portfolio`.
+2. Record a real headed flow with video enabled only for that project.
+3. Derive duration from meaningful E2E steps; use moderate project-scoped `slowMo` and brief milestone pauses only when needed for readability.
+4. Verify the test result and measure the actual generated `.webm` duration rather than estimating it from test runtime.
+5. Preserve `evidence/videos/ecommerce-showcase.webm` and `reports/allure-portfolio/index.html` without replacing `reports/allure/`.
+6. Report credentials or environment variables required, exact artifact paths, duration, and the next publication step.
+
+Never enable video or slow motion globally just to produce portfolio evidence, and never present a failed, mocked, or stale recording as the current successful run.
