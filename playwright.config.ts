@@ -10,6 +10,20 @@ export default defineConfig({
     ['list'],
     ['html', { outputFolder: 'reports/playwright-html', open: 'never' }],
     ['json', { outputFile: 'evidence/execution-results.json' }],
+    [
+      'allure-playwright',
+      {
+        resultsDir: 'allure-results',
+        detail: true,
+        suiteTitle: false,
+        environmentInfo: {
+          framework: 'Playwright',
+          language: 'TypeScript',
+          browser: 'Chromium',
+          project: 'Agentic Quality Engineering Demo',
+        },
+      },
+    ],
   ],
   use: {
     baseURL: 'http://127.0.0.1:4173',

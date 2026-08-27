@@ -150,6 +150,13 @@ Open the last HTML report:
 npm run test:report
 ```
 
+Generate a real Allure report from a fresh execution:
+
+```bash
+npm run test:allure
+npm run allure:open
+```
+
 Run quality checks:
 
 ```bash
@@ -169,6 +176,8 @@ npx playwright test tests/refund/full-refund.spec.ts --headed
 Every `npm test` run creates:
 
 - HTML report: `reports/playwright-html/index.html`
+- Allure raw results: `allure-results/`
+- Generated Allure report: `reports/allure/index.html`
 - JSON result metadata: `evidence/execution-results.json`
 - Failure artifacts: `test-results/<test-name>/`
 - Traces: retained on failure as `trace.zip`
@@ -176,6 +185,8 @@ Every `npm test` run creates:
 - Videos: retained only on failure
 
 The latest verified summary is [`reports/execution-summary.md`](reports/execution-summary.md). Generated HTML, JSON, traces, screenshots, and videos are ignored by Git by default because they are environment-specific. See [`evidence/README.md`](evidence/README.md) and the [portfolio evidence guide](docs/portfolio-evidence.md).
+
+The generated Allure dashboard is published automatically through GitHub Pages after pushes to `main`. Once the workflow completes, use the repository's **Settings → Pages** URL as the portfolio link for the interactive report.
 
 ## Project structure
 

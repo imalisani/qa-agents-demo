@@ -3,5 +3,6 @@ test-results/
 reports/playwright-html/
 evidence/execution-results.json
 evidence/videos/
+allure-results/
 *.log
 .DS_Store
