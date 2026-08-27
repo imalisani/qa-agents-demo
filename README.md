@@ -48,7 +48,7 @@ The [QA Orchestrator](agents/qa-orchestrator.md) routes work to the smallest use
 | [QA Orchestrator](agents/qa-orchestrator.md) | Workflow decomposition, routing, dependencies, and final synthesis |
 | [Requirements Agent](agents/requirements-agent.md) | Business rules, ambiguities, Product questions, and affected functionality |
 | [Risk Agent](agents/risk-agent.md) | Business, technical, integration, regression, concurrency, and consistency risk |
-| [Test Design Agent](agents/test-design-agent.md) | Risk-prioritized scenarios and requirement traceability |
+| [Test Design Agent](agents/test-design-agent.md) | Risk-prioritized Gherkin scenarios and requirement traceability |
 | [Automation Agent](agents/automation-agent.md) | What is safe and valuable to automate with Playwright |
 | [Failure Analysis Agent](agents/failure-analysis-agent.md) | Evidence-based classification of failed tests |
 
