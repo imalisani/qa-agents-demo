@@ -144,7 +144,7 @@ Use Playwright UI mode:
 npm run test:ui
 ```
 
-Record a real video for every successful test and regenerate Allure:
+Run only the headed ecommerce showcase, record its video, and regenerate Allure:
 
 ```bash
 npm run test:portfolio
@@ -190,9 +190,9 @@ Every `npm test` run creates:
 - Screenshots: captured only on failure
 - Videos: retained only on failure
 
-`npm run test:portfolio` overrides that last policy for a deliberate portfolio recording and produces `.webm` files under `test-results/`.
+`npm run test:portfolio` uses a separate headed project with portfolio-only pacing. It produces a canonical recording at `evidence/videos/ecommerce-showcase.webm`, a run-owned artifact under `test-results/`, and an isolated report at `reports/allure-portfolio/index.html` without replacing the historical Allure report.
 
-The latest verified summary is [`reports/execution-summary.md`](reports/execution-summary.md). Generated HTML, JSON, traces, screenshots, and videos are ignored by Git by default because they are environment-specific. See [`evidence/README.md`](evidence/README.md) and the [portfolio evidence guide](docs/portfolio-evidence.md).
+The latest verified summary is [`reports/execution-summary.md`](reports/execution-summary.md). Generated HTML, JSON, traces, screenshots, and videos are ignored by Git by default because they are environment-specific; the curated `ecommerce-showcase.webm` is the single versioned exception. See [`evidence/README.md`](evidence/README.md) and the [portfolio evidence guide](docs/portfolio-evidence.md).
 
 The generated Allure dashboard is published automatically through GitHub Pages after pushes to `main`. Once the workflow completes, use the repository's **Settings → Pages** URL as the portfolio link for the interactive report.
 

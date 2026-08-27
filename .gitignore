@@ -1,8 +1,12 @@
 node_modules/
 test-results/
 reports/playwright-html/
+reports/allure-portfolio/
 evidence/execution-results.json
 evidence/videos/
+!evidence/videos/
+evidence/videos/*
+!evidence/videos/ecommerce-showcase.webm
 allure-results/
 *.log
 .DS_Store

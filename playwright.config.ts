@@ -13,7 +13,7 @@ export default defineConfig({
     [
       'allure-playwright',
       {
-        resultsDir: 'allure-results',
+        resultsDir: process.env.ALLURE_RESULTS_DIR ?? 'allure-results',
         detail: true,
         suiteTitle: false,
         environmentInfo: {
@@ -35,7 +35,19 @@ export default defineConfig({
   projects: [
     {
       name: 'chromium',
+      testIgnore: '**/portfolio/**',
       use: { ...devices['Desktop Chrome'] },
+    },
+    {
+      name: 'portfolio-showcase',
+      testMatch: '**/portfolio/**/*.spec.ts',
+      use: {
+        ...devices['Desktop Chrome'],
+        baseURL: 'https://automationexercise.com',
+        headless: false,
+        launchOptions: { slowMo: 800 },
+        video: 'on',
+      },
     },
   ],
   webServer: {
