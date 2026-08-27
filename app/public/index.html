@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Agentic QA Lab — Refund Demo</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <main>
+      <p class="eyebrow">Agentic QA Lab · deterministic test surface</p>
+      <h1>Refund request</h1>
+      <p>This small local application exposes confirmed refund invariants for real Playwright execution.</p>
+
+      <section aria-labelledby="order-heading">
+        <h2 id="order-heading">Order summary</h2>
+        <dl>
+          <div><dt>Amount paid</dt><dd data-testid="paid">Loading…</dd></div>
+          <div><dt>Already refunded</dt><dd data-testid="refunded">Loading…</dd></div>
+          <div><dt>Refundable remaining</dt><dd data-testid="remaining">Loading…</dd></div>
+        </dl>
+      </section>
+
+      <section aria-labelledby="refund-heading">
+        <h2 id="refund-heading">Create a refund</h2>
+        <form id="refund-form">
+          <label for="amount">Refund amount</label>
+          <input id="amount" name="amount" inputmode="decimal" required />
+          <div class="actions">
+            <button type="submit">Request partial refund</button>
+            <button type="button" id="full-refund">Request full refund</button>
+          </div>
+        </form>
+        <p id="result" role="status" aria-live="polite"></p>
+      </section>
+
+      <section aria-labelledby="history-heading">
+        <h2 id="history-heading">Refund history</h2>
+        <ul id="refunds"><li>No refunds requested.</li></ul>
+      </section>
+    </main>
+    <script type="module" src="/app.js"></script>
+  </body>
+</html>
