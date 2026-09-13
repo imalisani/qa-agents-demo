@@ -20,12 +20,12 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7.0.1
+      - uses: actions/setup-node@v7.0.0
         with:
           node-version: '24'
           cache: npm
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v6.0.1
         with:
           distribution: temurin
           java-version: '17'
@@ -53,7 +53,7 @@ jobs:
         run: npm run allure:generate
       - name: Save execution evidence
         if: ${{ !cancelled() }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7.0.1
         with:
           name: qa-evidence-${{ github.run_id }}
           retention-days: 14
@@ -66,7 +66,7 @@ jobs:
             test-results/
       - name: Prepare successful main report for publication
         if: ${{ success() && github.ref == 'refs/heads/main' && github.event_name != 'pull_request' }}
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@v5.0.0
         with:
           path: reports/allure-current
 
@@ -87,7 +87,7 @@ jobs:
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5.0.1
 
   smoke:
     name: Published report smoke test
@@ -97,8 +97,8 @@ jobs:
     env:
       REPORT_URL: ${{ needs.deploy.outputs.page_url }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7.0.1
+      - uses: actions/setup-node@v7.0.0
         with:
           node-version: '24'
           cache: npm
@@ -108,7 +108,7 @@ jobs:
         run: npm run test:deploy
       - name: Save deployment verification evidence
         if: ${{ !cancelled() }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7.0.1
         with:
           name: deployment-evidence-${{ github.run_id }}
           retention-days: 14
