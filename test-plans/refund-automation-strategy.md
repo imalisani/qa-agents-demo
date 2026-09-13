@@ -13,6 +13,10 @@ Automate only confirmed financial invariants and deterministic retry behavior. U
 - `RF-T05`: over-refund rejection without side effects.
 - `RF-T06`: state belongs to the explicitly accepted set.
 
+The additional implemented coverage is traced in [ci-regression.feature](ci-regression.feature): RF-T13–RF-T25 cover API validation/contracts, UI regressions and accessibility; RF-U01–RF-U04 cover domain invariants; CI-T01 verifies the deployed report. Original scenarios now also check exact refund counts and unchanged original payment data.
+
+Input validation follows the demo contract: positive USD values with at most two decimal places in the UI, positive integer cents in the API. Allocation conservation across all permitted single-refund amounts does not prove a residual-cent policy or cumulative per-payment-method accounting.
+
 ## Deliberately not automated
 
 - Eligibility windows, because their calculation and boundary semantics are unresolved.

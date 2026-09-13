@@ -25,7 +25,8 @@
         <h2 id="refund-heading">Create a refund</h2>
         <form id="refund-form">
           <label for="amount">Refund amount</label>
-          <input id="amount" name="amount" inputmode="decimal" required />
+          <input id="amount" name="amount" inputmode="decimal" pattern="[0-9]+([.][0-9]{1,2})?" aria-describedby="amount-help" required />
+          <p id="amount-help">Enter a positive USD amount with up to two decimal places, for example 40.00.</p>
           <div class="actions">
             <button type="submit">Request partial refund</button>
             <button type="button" id="full-refund">Request full refund</button>

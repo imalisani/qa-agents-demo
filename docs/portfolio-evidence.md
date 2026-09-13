@@ -2,6 +2,13 @@
 
 ## Strong artifacts to show
 
+- [Live CI-generated Allure report](https://imalisani.github.io/qa-agents-demo/).
+- [Quality pipeline runs](https://github.com/imalisani/qa-agents-demo/actions/workflows/publish-allure.yml).
+- `test-plans/ci-regression.feature`: Gherkin regression coverage with scenario IDs.
+- `docs/ci-pipeline.md`: quality gate, coverage and deployment explanation.
+- `docs/bugs-reports/BUG-001-invalid-refund-input.md`: regression that reproduced a defect before its fix.
+- [Archived showcase and videos](https://imalisani.github.io/qa-agents-demo/archive/): historical evidence, separate from current CI results.
+
 - `test-plans/refund-requirement-analysis.md`: proof that ambiguity is discovered before automation.
 - `test-plans/refund-risk-assessment.md`: risk prioritization and traceability.
 - `test-plans/refund-test-plan.md`: automated versus blocked coverage.

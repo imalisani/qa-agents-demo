@@ -2,6 +2,9 @@ node_modules/
 test-results/
 reports/playwright-html/
 reports/allure-portfolio/
+reports/allure-current/
+reports/deployment-html/
+test-results-deploy/
 evidence/execution-results.json
 evidence/videos/
 !evidence/videos/

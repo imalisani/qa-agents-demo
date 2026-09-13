@@ -9,7 +9,7 @@
 | RF-T03 | Critical | Boundary | R-01 | Automated |
 | RF-T04 | Critical | Integration / idempotency | R-03 | Automated |
 | RF-T05 | Critical | Negative | R-01 | Automated |
-| RF-T06 | High | State transition | R-04 | Automated |
+| RF-T06 | High | State validation | R-04 | Automated |
 | RF-T07 | Critical | Concurrency | R-05 | Blocked by Q-03 and missing concurrency contract |
 | RF-T08 | High | Boundary | R-02 | Blocked by Q-02 |
 | RF-T09 | High | Business rule | R-07 | Blocked by Q-05 |
@@ -50,7 +50,7 @@ Feature: Refund amounts remain within the amount paid
 
   @RF-T03 @critical @boundary @risk-R01 @automated
   Scenario: Cumulative partial refunds cannot exceed the paid total
-    Given approved partial refunds total 120.00 USD
+    Given accepted partial refunds total 120.00 USD
     When the customer requests an additional refund of 0.01 USD
     Then the request is rejected
     And the cumulative refunded amount remains 120.00 USD

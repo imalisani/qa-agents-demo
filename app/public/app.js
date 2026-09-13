@@ -33,10 +33,20 @@ async function requestRefund(amount) {
   await loadState();
 }
 
+const amountInput = document.querySelector('#amount');
+amountInput.addEventListener('input', () => amountInput.setCustomValidity(''));
+
 document.querySelector('#refund-form').addEventListener('submit', async (event) => {
   event.preventDefault();
-  const value = Number.parseFloat(new FormData(event.currentTarget).get('amount'));
-  await requestRefund(Math.round(value * 100));
+  const value = amountInput.value;
+  const [dollars, fraction = ''] = value.split('.');
+  const cents = Number(dollars) * 100 + Number(fraction.padEnd(2, '0'));
+  if (!/^[0-9]+([.][0-9]{1,2})?$/.test(value) || !Number.isSafeInteger(cents) || cents <= 0) {
+    amountInput.setCustomValidity('Enter a positive USD amount with up to two decimal places.');
+    amountInput.reportValidity();
+    return;
+  }
+  await requestRefund(cents);
 });
 
 document.querySelector('#full-refund').addEventListener('click', async () => {

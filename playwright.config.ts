@@ -13,7 +13,7 @@ export default defineConfig({
     [
       'allure-playwright',
       {
-        resultsDir: process.env.ALLURE_RESULTS_DIR ?? 'allure-results',
+        resultsDir: process.env.ALLURE_RESULTS_DIR ?? 'allure-results/current',
         detail: true,
         suiteTitle: false,
         environmentInfo: {

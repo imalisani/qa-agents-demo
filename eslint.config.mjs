@@ -3,7 +3,7 @@ import globals from 'globals';
 import tseslint from 'typescript-eslint';
 
 export default tseslint.config(
-  { ignores: ['node_modules/', 'reports/', 'evidence/', 'test-results/'] },
+  { ignores: ['node_modules/', 'reports/', 'evidence/', 'test-results/', 'test-results-deploy/', 'allure-results/'] },
   eslint.configs.recommended,
   ...tseslint.configs.recommended,
   {

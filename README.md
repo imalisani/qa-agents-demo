@@ -1,5 +1,9 @@
 # Agentic Quality Engineering Demo
 
+[![Quality pipeline](https://github.com/imalisani/qa-agents-demo/actions/workflows/publish-allure.yml/badge.svg)](https://github.com/imalisani/qa-agents-demo/actions/workflows/publish-allure.yml)
+
+[Live Allure report](https://imalisani.github.io/qa-agents-demo/) · [CI workflow](.github/workflows/publish-allure.yml) · [Regression scenarios](test-plans/ci-regression.feature)
+
 A portfolio-ready experiment showing how specialized QA agents can move a complex User Story from ambiguity discovery to risk-based Playwright automation and real execution evidence.
 
 This is not only a Playwright framework. The central idea is that **agents own QA decisions**, **skills provide reusable QA capabilities**, and **tools execute work and preserve evidence**.
@@ -92,7 +96,7 @@ The highest risks are:
 
 See the complete [risk assessment](test-plans/refund-risk-assessment.md) and [test plan](test-plans/refund-test-plan.md).
 
-The automation boundary is documented in [refund-automation-strategy.md](test-plans/refund-automation-strategy.md). Six Critical/High scenarios are automated because their outcomes are explicit and deterministic. Six further scenarios remain blocked by requirement ambiguity or missing production-like integrations.
+The automation boundary is documented in [refund-automation-strategy.md](test-plans/refund-automation-strategy.md). The original six scenarios are complemented by validation, contract, UI regression and accessibility checks in [ci-regression.feature](test-plans/ci-regression.feature). Six further scenarios remain blocked by requirement ambiguity or missing production-like integrations.
 
 ## Playwright automation
 
@@ -111,6 +115,27 @@ Automated coverage:
 
 Tests live in [`tests/refund/`](tests/refund/). Titles carry test, priority, and risk IDs for traceability.
 
+The quality gate runs **33 Playwright cases** (18 API, 13 UI and 2 accessibility) and **4 domain unit tests**. The unit conservation test exhaustively checks 12,000 permitted single-refund amounts; it does not decide the unresolved residual-cent distribution rule. Domain branch coverage must be at least 90%. A separate browser smoke test verifies the published report.
+
+## Continuous integration and report publication
+
+```mermaid
+flowchart LR
+    Change[PR or push to main] --> Checks[Lint and TypeScript]
+    Checks --> Unit[Unit tests and coverage]
+    Unit --> Tests[API, UI and accessibility]
+    Tests --> Evidence[Fresh Allure and artifacts]
+    Evidence --> Gate{All checks passed on main?}
+    Gate -- Yes --> Pages[Publish to GitHub Pages]
+    Pages --> Smoke[Verify visible suites and commit provenance]
+```
+
+The [workflow](.github/workflows/publish-allure.yml) runs on PRs targeting `main`, pushes to `main`, and manual dispatch. It starts the local demo automatically, uses Chromium headlessly, and excludes the external ecommerce showcase. PRs validate changes without publishing. Failed test executions still generate Allure and upload evidence for 14 days; a failed quality gate blocks publication.
+
+Every published report includes `provenance.json` with the commit SHA, workflow run ID and result counts. The deployment smoke test checks those values and opens the report's suites in Chromium. Allure contains Playwright results; unit results and branch coverage are in the workflow log and `qa-evidence` artifact. See [the pipeline guide](docs/ci-pipeline.md) for reproduction and branch-protection details.
+
+The [archived showcase report](https://imalisani.github.io/qa-agents-demo/archive/) preserves the curated historical results and videos. It is separate from the fresh CI run.
+
 ## Failure investigation
 
 A failed test is never automatically a product bug. The Failure Analysis Agent classifies it as Product defect, Automation defect, Test data issue, Environment issue, or Requirement ambiguity.
@@ -119,17 +144,23 @@ The first browser run in this workspace produced a real environment failure beca
 
 ## Run the demo
 
-Prerequisites: Node.js 20+ and npm.
+Prerequisites: Node.js 24+, npm, and Java 17+ for Allure generation.
 
 ```bash
-npm install
+npm ci
 npx playwright install chromium
 ```
 
-Run the full suite:
+Run the local Playwright suite:
 
 ```bash
 npm test
+```
+
+Run all quality checks including unit tests and branch coverage:
+
+```bash
+npm run validate
 ```
 
 Run visibly in Chromium:
@@ -182,19 +213,20 @@ npx playwright test tests/refund/full-refund.spec.ts --headed
 Every `npm test` run creates:
 
 - HTML report: `reports/playwright-html/index.html`
-- Allure raw results: `allure-results/`
-- Generated Allure report: `reports/allure/index.html`
+- Allure raw results: `allure-results/current/` (cleared before each `npm test`)
 - JSON result metadata: `evidence/execution-results.json`
 - Failure artifacts: `test-results/<test-name>/`
 - Traces: retained on failure as `trace.zip`
 - Screenshots: captured only on failure
 - Videos: retained only on failure
 
+`npm run allure:generate` separately creates `reports/allure-current/index.html` from the current raw results. It refuses an empty report and preserves the curated historical report under `archive/`. `npm run test:allure` is a convenience command for a successful run followed by generation; CI uses separate steps so failed-test evidence is also available.
+
 `npm run test:portfolio` uses a separate headed project with portfolio-only pacing. It produces a canonical recording at `evidence/videos/ecommerce-showcase.webm`, a run-owned artifact under `test-results/`, and an isolated report at `reports/allure-portfolio/index.html` without replacing the historical Allure report.
 
-The latest verified summary is [`reports/execution-summary.md`](reports/execution-summary.md). Generated HTML, JSON, traces, screenshots, and videos are ignored by Git by default because they are environment-specific; the curated `ecommerce-showcase.webm` is the single versioned exception. See [`evidence/README.md`](evidence/README.md) and the [portfolio evidence guide](docs/portfolio-evidence.md).
+The latest verified summary is [`reports/execution-summary.md`](reports/execution-summary.md). Fresh generated reports, JSON and failure artifacts are ignored by Git. The curated historical `reports/allure/` and `evidence/videos/ecommerce-showcase.webm` remain versioned. See [`evidence/README.md`](evidence/README.md) and the [portfolio evidence guide](docs/portfolio-evidence.md).
 
-The generated Allure dashboard is published automatically through GitHub Pages after pushes to `main`. Once the workflow completes, use the repository's **Settings → Pages** URL as the portfolio link for the interactive report.
+The fresh Allure dashboard is published through GitHub Pages only after a successful quality gate on `main`. This demonstrates CI with continuous report publication; the demo application itself is started inside the runner, not deployed as a production service.
 
 ## Project structure
 
@@ -204,6 +236,13 @@ qa-agents-demo/
 |-- skills/                  # Reusable QA capabilities
 |-- app/                     # Deterministic local refund test surface
 |-- tests/refund/            # Playwright TypeScript tests
+|-- tests/api/               # HTTP validation and contracts
+|-- tests/ui/                # Customer-visible regression
+|-- tests/a11y/              # axe and keyboard checks
+|-- tests/fixtures/          # Checked reset and state assertions
+|-- unit-tests/              # Native Node domain tests and coverage
+|-- deployment-tests/        # Public report smoke test
+|-- scripts/                 # Fresh results and report provenance
 |-- test-plans/              # Requirements, risks, scenarios, decisions
 |-- reports/                 # Human-readable summaries + generated HTML
 |-- evidence/                # Generated machine-readable execution evidence
