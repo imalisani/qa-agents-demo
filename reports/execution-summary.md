@@ -1,49 +1,58 @@
 # Quality execution summary
 
-## Verified run
+## Verified local full-lifecycle run
 
-- Date: 2026-09-13
-- Environment: Windows, Node 24.13.0, Chromium, local deterministic demo.
-- Project: `chromium`
-- Command: `npm.cmd run validate`, followed by `npm.cmd run allure:generate`.
-- Lint and TypeScript: passed.
-- Domain unit tests: **4 passed**, covering 12,000 single-refund amounts inside the conservation test.
-- Domain coverage: **96.67% lines, 93.75% branches, 100% functions**; branch gate is 90%.
-- Playwright: **33 passed, 0 failed, 0 flaky, 0 skipped** in **18.6 seconds**.
-- Fresh Allure generation: passed with 33 results.
-- Deployment smoke against the locally served generated report: **1 passed** in 2.0 seconds; validates provenance and opens the Chromium suite.
-- These are local verification results. The Actions run and published provenance identify the separate Linux CI execution.
+- Date: 2026-09-14.
+- Environment: Windows, Node 24.13.0, Chromium, PostgreSQL 17 Alpine in Docker, Grafana k6 container.
+- Dependency install: `npm ci` completed with 0 known npm audit vulnerabilities.
+- Static checks: ESLint and TypeScript passed.
+- Unit: **8 passed**, **100% line/branch/function coverage** for the in-memory store and simulated-provider logic; branch gate is 90%.
+- Functional Playwright: **33 passed** — 18 API, 13 UI, 2 accessibility.
+- Simulated integration/resilience: **6 passed**.
+- Security-focused API: **7 passed**.
+- PostgreSQL/data integrity: **5 passed**.
+- Combined automated test cases: **59 passed, 0 failed**.
+- Combined Allure: **51 Playwright results**, all passed. Unit and k6 results are represented in the QA Evidence Pack rather than Allure test cases.
+- Machine-readable aggregation: passed with every required local evidence source present.
 
-## Scenarios executed
+## Observed k6 smoke result
 
-| ID | Priority | Result |
-|---|---|---|
-| RF-T01 | Critical | Passed |
-| RF-T02 | High | Passed |
-| RF-T03 | Critical | Passed |
-| RF-T04 | Critical | Passed |
-| RF-T05 | Critical | Passed |
-| RF-T06 | High | Passed |
-| RF-T13–RF-T17 | High/Low | 14 API cases passed |
-| RF-T18–RF-T22, RF-T25 | Critical/High/Medium | 11 UI cases passed |
-| RF-T23–RF-T24 | High | 2 accessibility cases passed |
-| RF-U01–RF-U04 | Critical/High | 4 unit tests passed |
+This measurement belongs to the local demo runner and is not a Product SLO or production capacity claim.
+
+| Metric | Observed |
+|---|---:|
+| Profile | smoke — 1 virtual user, 5 iterations |
+| HTTP requests | 15 |
+| Checks | 25 passed, 0 failed (100%) |
+| HTTP failure rate | 0% |
+| p95 HTTP duration | 2.12 ms |
+| Throughput | 430.06 requests/second |
+
+The demo/CI guardrails passed: p95 below 500 ms, HTTP failures below 1%, and checks above 99%.
+
+## Data and integration evidence
+
+- API refund rows reconciled directly with PostgreSQL amount, allocation, status, and idempotency data.
+- Unique persisted idempotency, over-refund rollback, original-payment immutability, concurrent paid-total protection, and an allocation check constraint passed.
+- The opt-in **SIMULATED PROVIDER** passed confirmed success, delayed success, rejection, timeout-before-acceptance, unknown accepted outcome/replay, and transient failure/retry scenarios.
+
+## Security-focused evidence
+
+Server-owned identifiers, order, allocation, status, and idempotency source were protected from body injection. Changed-payload replay, unsupported content type, oversized body, long idempotency key, disabled simulator controls, and prototype-shaped input behaved according to the implemented contract without unauthorized financial mutation.
+
+Authentication, authorization, rate limiting, penetration testing, and production infrastructure are outside this demo's current scope.
 
 ## Generated evidence
 
-- `reports/playwright-html/index.html`
-- `evidence/execution-results.json`
-- `test-results/.last-run.json`
-- `allure-results/current/`
-- `reports/allure-current/index.html`
-- `reports/allure-current/provenance.json`
+- `evidence/qa-evidence.json` — run-owned aggregation (generated and ignored by Git).
+- `evidence/raw/` — unit, Playwright, PostgreSQL, security, integration, and k6 sources.
+- `reports/allure-current/index.html` — combined current Playwright report.
+- `reports/allure-current/provenance.json` — run provenance.
+- `reports/allure-current/qa-evidence.json` — evidence copied into the publishable report.
+- `test-results/` — failure artifacts when a test fails.
 
-Passing regression runs do not record videos. Failure traces, screenshots and videos remain enabled; axe JSON for initial and submitted states is attached to the accessibility result. Historical showcase recordings are preserved in `reports/allure/` and published under `/archive/`.
+CI produces separate Linux-runner values and publishes only after every quality gate passes. The public `provenance.json` and `qa-evidence.json` identify the exact deployed commit and workflow run.
 
-## Investigated failures
+## Residual risk
 
-RF-T21 with `40abc` failed before the form fix. The captured page showed a USD 40 refund, USD 80 remaining, and the mixed input still present. The repaired form rejects this and other invalid inputs without a POST. See [BUG-001](../docs/bugs-reports/BUG-001-invalid-refund-input.md).
-
-The first complete regression run also exposed a test-data construction issue: Playwright serialized the malformed JSON string as valid JSON. Sending a Buffer preserves the malformed bytes; the API then returns the expected JSON error. No application change was needed for this case.
-
-Residual-cent distribution, real concurrency, provider outcomes and eligibility rules remain unproven as documented in the automation strategy. Automated axe/keyboard checks do not establish full accessibility compliance or screen-reader announcements.
+Residual-cent distribution, eligibility, shipping, discounts, mixed-seller behavior, real provider reconciliation/webhooks, Product-defined concurrency responses, authentication/authorization, full accessibility conformance, and production performance remain unproven. Passing evidence supports a bounded level of confidence; it does not imply a defect-free or production-ready financial platform.

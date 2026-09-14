@@ -1,43 +1,70 @@
-# Quality pipeline
+# Full-lifecycle quality pipeline
 
-## Execute locally
+## Gate executed on every PR and main push
+
+1. Install locked npm dependencies and Chromium.
+2. Run ESLint and TypeScript checks.
+3. Run domain/provider unit tests with a 90% branch gate.
+4. Run functional API, UI, and accessibility checks.
+5. Run API↔PostgreSQL reconciliation, constraint, idempotency, and concurrency checks.
+6. Run deterministic simulated-provider integration checks.
+7. Run security-focused API checks.
+8. Run the k6 smoke profile against the local service.
+9. Aggregate real outputs into `evidence/qa-evidence.json`.
+10. Generate Allure and upload the complete run artifact.
+
+The PostgreSQL 17 service is isolated to the job. The provider is simulated, deterministic, and enabled only for its dedicated suite. k6 thresholds are regression guardrails for this runner, not Product SLOs.
+
+Test stages use `if: !cancelled()` after installation so later evidence can still be collected when an earlier test layer fails. There is no `continue-on-error`: a failed test or threshold still fails the quality job.
+
+## Publication and deployment verification
+
+Only a successful non-PR run on `main` uploads a Pages artifact. The artifact contains:
+
+- the combined current Allure report;
+- `provenance.json` with commit SHA, workflow run ID, generation time, and Allure counts;
+- `qa-evidence.json` with every required gate, test breakdown, branch coverage, and k6 metrics;
+- the curated historical report under `/archive/`.
+
+The deployment job publishes that exact artifact. A final Chromium smoke test polls for the expected SHA/run ID, rejects failed or incomplete evidence, checks every full-lifecycle gate, and opens a visible refund suite. Deployment failures retain their own trace/report artifact.
+
+## Failure evidence
+
+The `qa-evidence-<run-id>` artifact is retained for 14 days and includes raw Playwright JSON, Allure results, layer-specific HTML reports, unit output, PostgreSQL results, k6 summary, performance-service log, and failure traces/screenshots/videos when available.
+
+Published Pages content is the latest successful main run. Failed runs remain inspectable in Actions but cannot replace the public verified report.
+
+## Local reproduction
+
+Core memory-mode gate:
 
 ```bash
 npm ci
 npx playwright install chromium
 npm run validate
-npm run allure:generate
-npm run allure:open
 ```
 
-Use Node 24+ and Java 17+. Unit tests use Node's native test runner with a 90% branch threshold scoped to `app/refund-store.mjs`. No coverage number is claimed for the whole application.
+PostgreSQL layer:
 
-The in-memory demo exposes one order, so tests run with one worker. A shared fixture checks `/api/reset` before each local Playwright test. These tests do not establish concurrency, authentication or durable persistence guarantees. The external `portfolio-showcase` project runs only when explicitly requested and is not part of the gate.
+```powershell
+docker compose up -d postgres
+$env:DATABASE_URL='postgresql://qa_lab:qa_lab_local@127.0.0.1:5433/qa_lab'
+npm run test:data
+```
 
-## Evidence and failures
+k6 layer, with `npm start` running in another terminal:
 
-`Quality gate` installs dependencies, checks lint/types, executes unit tests with coverage and runs API, UI and axe/keyboard checks. Test failures remain failures: no `continue-on-error` is used. Unit output passes through Bash with `pipefail`, so a failing coverage threshold cannot be hidden by `tee`.
+```bash
+npm run test:performance:smoke
+```
 
-Allure generation runs after successful or failed Playwright execution. Reports, raw results, unit output, JSON metadata and available failure traces/screenshots/videos are uploaded as `qa-evidence-<run-id>` for 14 days. Fresh results are kept in `allure-results/current/` and `reports/allure-current/`; historical curated evidence remains under `reports/allure/`.
+For a complete local evidence pack, keep the same `evidence/raw/` directory across layers, execute data and k6, then run:
 
-The Allure page lists only Playwright tests. Unit results are in the artifact/log; deployment smoke results have their own `deployment-evidence-<run-id>` artifact.
+```bash
+npm run evidence:generate
+npm run allure:generate
+```
 
-## Publication
+## Branch protection
 
-Only a successful quality job on `main` uploads the Pages artifact. `Publish verified report` depends on that job. PRs and manual runs on other branches cannot publish. The public report includes the exact commit and run ID in `provenance.json`, and keeps the historical curated report under `/archive/`.
-
-`Published report smoke test` waits for the expected provenance, rejects empty/failed reports, and verifies visible test suites in Chromium. A smoke failure marks the workflow red and retains diagnostic artifacts; it does not roll back the already published report.
-
-Production runs are serialized per ref without canceling an in-progress deployment. Superseded PR runs are canceled. GitHub may replace queued pending runs, so the workflow guarantees checks for the deployed commit, not publication of every intermediate push.
-
-## Merge protection
-
-Require the `Quality gate` status check on `main`, with the PR branch up to date before merging. No approval from a second reviewer is needed for this solo portfolio. The workflow gates publication independently; repository protection is what enforces the PR merge rule. Administrative configuration is verified separately from the YAML.
-
-## Portfolio explanation
-
-“I built a GitHub Actions quality gate with domain tests and branch coverage, Playwright API/UI checks, automated accessibility checks and diagnostic artifacts. Successful main runs publish a fresh Allure dashboard. A browser smoke test verifies the published commit and results.”
-
-The regression suite also reproduces and fixes [BUG-001](bugs-reports/BUG-001-invalid-refund-input.md): permissive currency parsing created a refund from mixed input such as `40abc`.
-
-References: [Playwright accessibility testing](https://playwright.dev/docs/accessibility-testing), [GitHub Pages custom workflows](https://docs.github.com/en/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages).
+Require the `Quality gate` status on `main` and require the PR branch to be current before merge. Workflow YAML gates publication; repository protection enforces the merge rule.

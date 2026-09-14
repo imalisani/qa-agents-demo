@@ -15,6 +15,11 @@
 - `agents/qa-orchestrator.md`: responsibility routing.
 - `skills/playwright-testing/SKILL.md`: reusable capability instructions.
 - `tests/refund/`: readable Critical/High automation.
+- `tests/data/`: direct API↔PostgreSQL and concurrency evidence.
+- `tests/integration/`: deterministic simulated-provider resilience.
+- `tests/security/`: trust-boundary and state-integrity checks.
+- `performance/refund-api.js`: explicit k6 workloads and CI guardrails.
+- `evidence/qa-evidence.json`: generated run-owned evidence contract (published, not committed).
 - `reports/execution-summary.md`: concise result from a real run.
 - `reports/playwright-html/`: interactive local report; publish as a separate static artifact if desired.
 
@@ -46,4 +51,4 @@ Use real URLs only after publishing:
 - Hosted static Playwright report URL for **View report**.
 - Hosted `.webm` or converted accessible video asset for **Watch execution**.
 
-Keep these links configurable in the portfolio until those assets have been published.
+Keep these links configurable in the portfolio until those assets have been published. The current verified machine-readable source is `https://imalisani.github.io/qa-agents-demo/qa-evidence.json`; consumers should display its commit/run provenance and limitations with the metrics.

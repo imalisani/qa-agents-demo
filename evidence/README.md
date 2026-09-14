@@ -1,18 +1,31 @@
-# Execution evidence
+# QA Evidence Pack
 
-Playwright writes real run artifacts to these locations:
+The evidence contract is generated from real execution outputs; values are never hardcoded as portfolio claims.
 
-- `execution-results.json`: machine-readable execution metadata.
-- `../reports/playwright-html/`: interactive HTML report.
-- `../allure-results/current/`: fresh raw Allure execution results.
-- `../reports/allure-current/`: current dashboard, created by `npm run allure:generate`.
-- `../reports/allure/`: preserved historical curated dashboard, published under `/archive/`.
-- `../test-results/`: per-test traces, screenshots, and videos retained on failure.
-- `videos/ecommerce-showcase.webm`: canonical video generated only by `npm run test:portfolio`.
-- `../reports/allure-portfolio/`: isolated Allure dashboard for the showcase run.
+## Stable machine-readable summary
 
-Fresh reports and artifacts are generated, not authored, and ignored by Git. The curated historical report and showcase video remain versioned. A concise verified run summary is committed at `../reports/execution-summary.md`.
+`npm run evidence:generate` reads:
 
-GitHub Actions keeps `qa-evidence-<run-id>` and `deployment-evidence-<run-id>` for 14 days. The former includes unit-test coverage output and Playwright evidence; the latter contains the public-report smoke test. `provenance.json` in the published report identifies the exact commit and workflow run.
+- `raw/unit-tests.txt` — executed unit count and branch coverage;
+- `raw/functional.json` — API, UI, and accessibility results;
+- `raw/integration.json` — simulated-provider resilience results;
+- `raw/security.json` — security-focused results;
+- `raw/data.json` — PostgreSQL and direct SQL results;
+- `raw/k6-summary.json` — workload, thresholds, latency, failures, throughput, requests, and checks.
 
-For a portfolio demonstration, run `npm run test:portfolio`. The dedicated project records video without changing the normal suite's speed or video policy. Review `videos/ecommerce-showcase.webm`, then copy it to the portfolio repository's public assets directory.
+It writes `qa-evidence.json` with schema version, result status, commit, run ID, layer counts, coverage, performance observations, gate outcomes, and limitations. CI requires all six evidence sources and publishes this file beside Allure. A partial local run is labeled `partial`; a missing required source or failed gate is labeled `failed`.
+
+Generated JSON and raw outputs are ignored by Git because they belong to a specific run. The verified main-run version is public at <https://imalisani.github.io/qa-agents-demo/qa-evidence.json> and included in the Actions artifact.
+
+## Other evidence locations
+
+- `../reports/allure-current/` — combined current Allure report plus evidence/provenance.
+- `../reports/playwright-functional/` — functional layer HTML.
+- `../reports/playwright-integration/` — simulated integration layer HTML.
+- `../reports/playwright-security/` — security layer HTML.
+- `../reports/playwright-data/` — PostgreSQL layer HTML.
+- `../test-results/` — traces, screenshots, and videos retained on failure.
+- `videos/ecommerce-showcase.webm` — curated historical showcase only.
+- `../reports/allure/` — curated historical report, kept separate from current CI evidence.
+
+Passing regression runs do not record video. Accessibility results attach axe JSON. Failure artifacts must be investigated before they are classified as product defects.

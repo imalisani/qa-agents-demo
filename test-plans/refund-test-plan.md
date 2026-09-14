@@ -16,6 +16,10 @@
 | RF-T10 | High | Integration / recovery | R-06 | Blocked by Q-01, Q-07 and missing provider simulator |
 | RF-T11 | High | Multi-seller integration | R-09 | Blocked by Q-08 |
 | RF-T12 | High | Eligibility boundary | R-08 | Blocked by Q-04 |
+| RF-T26–RF-T30 | Critical/High/Medium | Simulated integration / resilience | R-03, R-06 | Automated against deterministic simulator |
+| RF-T31–RF-T37 | Critical/High/Medium | Security-focused QA | R-01, R-03, R-04 | Automated |
+| RF-T38–RF-T42 | Critical/High | PostgreSQL / data integrity | R-01, R-02, R-03, R-05, R-10 | Automated |
+| PERF-T01 | High | Performance smoke | Regression guardrail | Automated in CI; not a product SLO |
 
 ## Executable scenarios
 
@@ -130,6 +134,50 @@ Feature: Refund provider and seller outcomes converge safely
     Then seller and aggregate states follow the rule approved in Q-08
 ```
 
+## Implemented full-lifecycle extensions
+
+```gherkin
+Feature: Deterministic provider behavior preserves local financial state
+
+  @RF-T26 @RF-T27 @RF-T28 @RF-T29 @RF-T30 @integration @automated @simulated-provider
+  Scenario: A controlled provider outcome is handled without duplicate local effects
+    Given the simulated provider is explicitly enabled
+    When success, delay, rejection, pre-acceptance timeout, unknown outcome, or transient failure is selected
+    Then the API response matches the deterministic scenario
+    And only accepted outcomes create a refund
+    And a retry with the same idempotency key creates at most one refund
+
+Feature: Security-focused refund validation protects trust boundaries
+
+  @RF-T31 @RF-T32 @RF-T33 @RF-T34 @RF-T35 @RF-T36 @RF-T37 @security @automated
+  Scenario: Untrusted input cannot own protected refund state
+    When a client sends server-owned fields, changed replay data, malformed transport data, or disabled simulator controls
+    Then the request is rejected or sanitized according to the implemented contract
+    And no unauthorized financial state is persisted
+
+Feature: PostgreSQL persistence enforces financial integrity
+
+  @RF-T38 @RF-T39 @RF-T40 @RF-T41 @RF-T42 @data @automated
+  Scenario: API state reconciles with transactional database state
+    Given the demo runs in PostgreSQL persistence mode
+    When refunds succeed, fail, retry, or arrive concurrently
+    Then API totals reconcile with persisted rows
+    And original payment data remains unchanged
+    And SQL constraints prevent invalid allocation and duplicate idempotency state
+
+Feature: CI detects material performance regression
+
+  @PERF-T01 @performance @automated
+  Scenario: The read-only refund workload stays within demo CI guardrails
+    Given one virtual user executes five iterations against the local CI service
+    When health, order, and refund-history endpoints are requested
+    Then the HTTP failure rate is below 1 percent
+    And p95 request duration is below 500 milliseconds
+    And more than 99 percent of checks pass
+```
+
+The performance values are regression guardrails for this controlled runner, not Product-approved SLOs. RF-T29 proves replay safety for a stored unknown outcome; it does not prove real provider reconciliation or a final financial outcome. RF-T41 proves the paid-total invariant under database concurrency; Product still needs to define winner selection and response semantics for concurrent requests.
+
 ## Regression focus
 
 - Original order and payment records remain immutable.
@@ -146,4 +194,4 @@ Feature: Refund provider and seller outcomes converge safely
 - Q-04: eligibility timezone and exact boundary semantics.
 - Q-05: cart-level discount allocation.
 - Q-08: aggregate state for mixed seller outcomes.
-- A controllable provider simulator is required before RF-T10 can be executed deterministically.
+- A real provider contract, webhook/reconciliation path, and production-like failure semantics are still required before RF-T10 is fully executable.

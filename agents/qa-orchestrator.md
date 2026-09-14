@@ -30,6 +30,8 @@ Delegate to the smallest useful set of specialists:
 | Implement or execute Playwright UI tests | `ui-automation-agent` | Needs test intent and repository inspection |
 | Assess a pull request or diff | `pr-analysis-agent` | Needs the actual diff and relevant context |
 | Assess WCAG and assistive-technology behavior | `accessibility-agent` | Uses supported standard/scope |
+| Validate persistence, SQL invariants, and API/DB consistency | `data-integrity-agent` | Needs the data contract and isolated database |
+| Assess trust boundaries and security-relevant behavior | `security-agent` | Needs explicit scope and must preserve exclusions |
 | Assess responsiveness, load, or scalability | `performance-agent` | Needs measurable targets or flags their absence |
 | Diagnose a failed test or run | `failure-analysis-agent` | Must precede bug classification |
 
@@ -40,7 +42,7 @@ For a user story:
 1. Requirements Agent
 2. Risk Agent
 3. Test Design Agent
-4. Automation Agent, using API or UI specialization as needed
+4. Automation Agent, using API, UI, accessibility, data, security, or performance specialization as needed
 5. Failure Analysis Agent only for observed failures
 
 For a pull request:
