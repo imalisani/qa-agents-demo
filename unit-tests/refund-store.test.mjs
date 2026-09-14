@@ -67,3 +67,15 @@ test('[RF-U04][R-02] allocation conserves integer cents for all 12000 permitted 
     assert.deepEqual(order.payment, initial.payment);
   }
 });
+
+test('[RF-U08][R-03][R-04] status is server-owned and rejected rows do not reserve money', () => {
+  const store = new RefundStore();
+  const rejected = store.createRefund({ amount: 4000, idempotencyKey: 'rejected', status: 'REJECTED' });
+  assert.equal(rejected.refund.status, 'REJECTED');
+  assert.equal(store.findByIdempotencyKey('rejected'), rejected.refund);
+  assert.deepEqual(store.getOrder(), initial);
+  assert.throws(
+    () => store.createRefund({ amount: 1000, idempotencyKey: 'invalid-state', status: 'UNKNOWN' }),
+    /Invalid refund state/,
+  );
+});

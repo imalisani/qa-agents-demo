@@ -4,7 +4,7 @@ const ORDER = Object.freeze({
   payment: Object.freeze({ card: 9000, credit: 3000 }),
 });
 
-const ALLOWED_STATUSES = new Set(['PENDING', 'APPROVED', 'REJECTED', 'PARTIALLY_REFUNDED']);
+export const ALLOWED_STATUSES = new Set(['PENDING', 'APPROVED', 'REJECTED', 'PARTIALLY_REFUNDED']);
 
 export class RefundStore {
   constructor() {
@@ -17,11 +17,17 @@ export class RefundStore {
   }
 
   getOrder() {
-    const refunded = this.refunds.reduce((sum, refund) => sum + refund.amount, 0);
+    const refunded = this.refunds
+      .filter((refund) => refund.status !== 'REJECTED')
+      .reduce((sum, refund) => sum + refund.amount, 0);
     return { ...ORDER, refunded, refundableRemaining: ORDER.paid - refunded };
   }
 
-  createRefund({ amount, idempotencyKey }) {
+  findByIdempotencyKey(idempotencyKey) {
+    return this.idempotency.get(idempotencyKey);
+  }
+
+  createRefund({ amount, idempotencyKey, status = 'PENDING' }) {
     if (this.idempotency.has(idempotencyKey)) {
       return { created: false, refund: this.idempotency.get(idempotencyKey) };
     }
@@ -36,18 +42,18 @@ export class RefundStore {
     }
 
     const card = Math.round((amount * ORDER.payment.card) / ORDER.paid);
+    if (!ALLOWED_STATUSES.has(status)) {
+      throw new Error('Invalid refund state');
+    }
+
     const refund = {
       id: `refund-${this.refunds.length + 1}`,
       orderId: ORDER.id,
       amount,
       allocation: { card, credit: amount - card },
-      status: 'PENDING',
+      status,
       idempotencyKey,
     };
-
-    if (!ALLOWED_STATUSES.has(refund.status)) {
-      throw new Error('Invalid refund state');
-    }
 
     this.refunds.push(refund);
     this.idempotency.set(idempotencyKey, refund);

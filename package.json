@@ -2,32 +2,47 @@
   "name": "agentic-quality-engineering-demo",
   "version": "1.0.0",
   "private": true,
-  "description": "A portfolio-ready Agentic Quality Engineering experiment using specialized QA agents, reusable skills, and Playwright.",
+  "description": "A full-lifecycle Agentic Quality Engineering lab covering risk-based functional, data, integration, security, performance, and continuous quality validation.",
   "type": "module",
   "scripts": {
     "start": "node app/server.mjs",
+    "start:provider": "cross-env ENABLE_PROVIDER_SIMULATOR=true node app/server.mjs",
+    "start:postgres": "cross-env PERSISTENCE_MODE=postgres node app/server.mjs",
     "pretest": "node scripts/prepare-test-results.mjs",
-    "test": "playwright test --project=chromium",
-    "test:unit": "node --test --experimental-test-coverage --test-coverage-include=app/refund-store.mjs --test-coverage-branches=90 unit-tests/*.test.mjs",
+    "test": "npm run test:functional",
+    "test:functional": "cross-env QA_SUITE=functional playwright test tests/api tests/refund tests/ui tests/a11y --project=chromium",
+    "test:integration": "playwright test --config=playwright.integration.config.ts",
+    "test:security": "cross-env QA_SUITE=security playwright test tests/security --project=chromium",
+    "test:data": "playwright test --config=playwright.data.config.ts",
+    "test:unit": "node scripts/run-unit-tests.mjs",
+    "test:performance:smoke": "cross-env K6_PROFILE=smoke k6 run performance/refund-api.js",
+    "test:performance:baseline": "cross-env K6_PROFILE=baseline k6 run performance/refund-api.js",
+    "test:performance:load": "cross-env K6_PROFILE=load k6 run performance/refund-api.js",
     "test:deploy": "playwright test --config=playwright.deploy.config.ts",
     "test:headed": "playwright test --headed",
     "test:ui": "playwright test --ui",
-    "test:report": "playwright show-report reports/playwright-html",
-    "test:allure": "npm test && npm run allure:generate",
-    "test:portfolio": "node -e \"require('fs').rmSync('allure-results/portfolio',{recursive:true,force:true})\" && cross-env ALLURE_RESULTS_DIR=allure-results/portfolio playwright test --project=portfolio-showcase && allure generate allure-results/portfolio --clean -o reports/allure-portfolio",
+    "test:report": "playwright show-report reports/playwright-functional",
+    "serve:allure": "node scripts/serve-report.mjs",
+    "test:allure": "npm run evidence:prepare && npm run test:unit && npm run test:functional && npm run test:integration && npm run test:security && npm run evidence:generate && npm run allure:generate",
+    "test:portfolio": "node -e \"require('fs').rmSync('allure-results/portfolio',{recursive:true,force:true})\" && cross-env QA_SUITE=portfolio ALLURE_RESULTS_DIR=allure-results/portfolio playwright test --project=portfolio-showcase && allure generate allure-results/portfolio --clean -o reports/allure-portfolio",
     "allure:generate": "allure generate allure-results/current --clean -o reports/allure-current && node scripts/prepare-report.mjs",
     "allure:open": "allure open reports/allure-current",
+    "evidence:prepare": "node scripts/prepare-test-results.mjs",
+    "evidence:generate": "node scripts/generate-qa-evidence.mjs",
     "build": "tsc --noEmit",
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
-    "validate": "npm run lint && npm run typecheck && npm run test:unit && npm test"
+    "validate": "npm run lint && npm run typecheck && npm run evidence:prepare && npm run test:unit && npm run test:functional && npm run test:integration && npm run test:security && cross-env REQUIRED_EVIDENCE=unit,functional,integration,security npm run evidence:generate"
   },
-  "engines": { "node": ">=24" },
+  "engines": {
+    "node": ">=24"
+  },
   "devDependencies": {
     "@axe-core/playwright": "^4.13.0",
     "@eslint/js": "^9.0.0",
     "@playwright/test": "^1.55.0",
     "@types/node": "^22.0.0",
+    "@types/pg": "^8.23.1",
     "allure-commandline": "^2.43.0",
     "allure-playwright": "^3.11.0",
     "cross-env": "^10.1.0",
@@ -35,5 +50,8 @@
     "globals": "^16.0.0",
     "typescript": "^5.9.0",
     "typescript-eslint": "^8.0.0"
+  },
+  "dependencies": {
+    "pg": "^8.23.0"
   }
 }

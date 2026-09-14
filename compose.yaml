@@ -1,0 +1,14 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: qa_lab
+      POSTGRES_USER: qa_lab
+      POSTGRES_PASSWORD: qa_lab_local
+    ports:
+      - "5433:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U qa_lab -d qa_lab"]
+      interval: 2s
+      timeout: 3s
+      retries: 15

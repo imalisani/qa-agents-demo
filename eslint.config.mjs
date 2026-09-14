@@ -18,4 +18,8 @@ export default tseslint.config(
     files: ['app/public/**/*.js'],
     languageOptions: { globals: globals.browser },
   },
+  {
+    files: ['performance/**/*.js'],
+    languageOptions: { globals: { __ENV: 'readonly' } },
+  },
 );

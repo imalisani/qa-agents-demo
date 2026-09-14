@@ -1,5 +1,7 @@
 import { defineConfig, devices } from '@playwright/test';
 
+const evidenceSuite = process.env.QA_SUITE ?? 'functional';
+
 export default defineConfig({
   testDir: './tests',
   fullyParallel: false,
@@ -8,8 +10,8 @@ export default defineConfig({
   workers: 1,
   reporter: [
     ['list'],
-    ['html', { outputFolder: 'reports/playwright-html', open: 'never' }],
-    ['json', { outputFile: 'evidence/execution-results.json' }],
+    ['html', { outputFolder: `reports/playwright-${evidenceSuite}`, open: 'never' }],
+    ['json', { outputFile: `evidence/raw/${evidenceSuite}.json` }],
     [
       'allure-playwright',
       {
@@ -20,7 +22,7 @@ export default defineConfig({
           framework: 'Playwright',
           language: 'TypeScript',
           browser: 'Chromium',
-          project: 'Agentic Quality Engineering Demo',
+          project: 'Agentic Quality Engineering Lab - Full Lifecycle',
         },
       },
     ],
@@ -31,11 +33,11 @@ export default defineConfig({
     screenshot: 'only-on-failure',
     video: process.env.PLAYWRIGHT_VIDEO === 'on' ? 'on' : 'retain-on-failure',
   },
-  outputDir: 'test-results',
+  outputDir: `test-results/${evidenceSuite}`,
   projects: [
     {
       name: 'chromium',
-      testIgnore: '**/portfolio/**',
+      testIgnore: ['**/portfolio/**', '**/data/**', '**/integration/**'],
       use: { ...devices['Desktop Chrome'] },
     },
     {
@@ -51,7 +53,7 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: 'npm run start',
+    command: 'node app/server.mjs',
     url: 'http://127.0.0.1:4173/health',
     reuseExistingServer: !process.env.CI,
     timeout: 30_000,
