@@ -10,6 +10,7 @@ await writeFile(new URL('provenance.json', report), JSON.stringify({
   generatedAt: new Date().toISOString(),
   tests: summary.statistic,
 }, null, 2));
+await cp(new URL('../evidence/qa-evidence.json', import.meta.url), new URL('qa-evidence.json', report));
 
 // Keep the old, curated showcase explicitly separate from current CI results.
 await cp(new URL('../reports/allure/', import.meta.url), new URL('archive/', report), { recursive: true });

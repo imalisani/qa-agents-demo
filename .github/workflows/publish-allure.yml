@@ -18,7 +18,23 @@ jobs:
   quality:
     name: Quality gate
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_DB: qa_lab
+          POSTGRES_USER: qa_lab
+          POSTGRES_PASSWORD: qa_lab_ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U qa_lab -d qa_lab"
+          --health-interval 2s
+          --health-timeout 3s
+          --health-retries 15
+    env:
+      DATABASE_URL: postgresql://qa_lab:qa_lab_ci@127.0.0.1:5432/qa_lab
     steps:
       - uses: actions/checkout@v7.0.1
       - uses: actions/setup-node@v7.0.0
@@ -34,22 +50,55 @@ jobs:
         run: npm ci
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
+      - name: Prepare isolated evidence directories
+        run: npm run evidence:prepare
       - name: Lint
         run: npm run lint
       - name: Typecheck
         run: npm run typecheck
       - name: Unit tests and branch coverage (minimum 90%)
         if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        run: npm run test:unit
+      - name: Functional API, UI and accessibility tests
+        id: functional
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        run: npm run test:functional
+      - name: PostgreSQL data-integrity tests
+        id: data
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        run: npm run test:data
+      - name: Simulated provider integration and resilience tests
+        id: integration
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        run: npm run test:integration
+      - name: Security-focused tests
+        id: security
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        run: npm run test:security
+      - name: Install Grafana k6
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        uses: grafana/setup-k6-action@v1
+      - name: Start service for performance smoke
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
         shell: bash
         run: |
-          mkdir -p reports
-          npm run test:unit 2>&1 | tee reports/unit-tests.txt
-      - name: API, UI and accessibility tests
-        id: tests
+          node app/server.mjs > reports/performance-server.log 2>&1 &
+          for attempt in {1..20}; do
+            curl --fail --silent http://127.0.0.1:4173/health && exit 0
+            sleep 1
+          done
+          exit 1
+      - name: k6 performance smoke guardrail
+        id: performance
         if: ${{ !cancelled() && steps.install.outcome == 'success' }}
-        run: npm test
+        run: npm run test:performance:smoke
+      - name: Generate unified QA Evidence Pack
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        env:
+          REQUIRED_EVIDENCE: unit,functional,integration,security,data,performance
+        run: npm run evidence:generate
       - name: Generate fresh Allure report, including failed tests
-        if: ${{ !cancelled() && (steps.tests.outcome == 'success' || steps.tests.outcome == 'failure') }}
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
         run: npm run allure:generate
       - name: Save execution evidence
         if: ${{ !cancelled() }}
@@ -58,11 +107,15 @@ jobs:
           name: qa-evidence-${{ github.run_id }}
           retention-days: 14
           path: |
-            reports/unit-tests.txt
-            reports/playwright-html/
+            reports/playwright-functional/
+            reports/playwright-integration/
+            reports/playwright-security/
+            reports/playwright-data/
             reports/allure-current/
+            reports/performance-server.log
             allure-results/current/
-            evidence/execution-results.json
+            evidence/qa-evidence.json
+            evidence/raw/
             test-results/
       - name: Prepare successful main report for publication
         if: ${{ success() && github.ref == 'refs/heads/main' && github.event_name != 'pull_request' }}
