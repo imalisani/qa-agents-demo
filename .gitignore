@@ -6,8 +6,10 @@ reports/playwright-security/
 reports/playwright-integration/
 reports/playwright-data/
 reports/playwright-portfolio/
+reports/playwright-bug-showcase/
 reports/allure-portfolio/
 reports/allure-current/
+reports/allure-bug-showcase/
 reports/deployment-html/
 test-results-deploy/
 evidence/execution-results.json
